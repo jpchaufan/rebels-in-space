@@ -1,44 +1,30 @@
-function randColor(){
-	var color = '#';
-	for (var i = 0; i < 6; i++) {
-		color += Math.floor(Math.random()*9+1);
-	};
-	return color;
-}
-function collision(one, two){
-	if ( one.x+one.width >= two.x && one.x <= two.x+two.width &&
-		one.y <= two.y+two.height && one.y+one.height >= two.y ){
-		return true;
-	}
-	return false;
-}
-
-
-
-
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 var lastTime = Date.now();
 var enemies = [];
 var score = 0;
 var currentRound;
+var textColor = 'white';
+var roundNum = 0;
+var soundsOn = true;
+var paused = false;
 
 function drawUI(){
-	ctx.fillStyle = 'black';
+	ctx.fillStyle = textColor;
 	ctx.font = '18px Helvetica';
 	ctx.fillText('Score: '+score, 5, 20);
-	ctx.fillText('Shields: '+player.shields, 5, canvas.height-20)
+	ctx.lineWidth = 4;
+	ctx.fillStyle = 'black';
+	ctx.save();
+	ctx.shadowColor = "white"; 
+	ctx.shadowOffsetX = 2; 
+	ctx.shadowOffsetY = 2; 
+	ctx.shadowBlur = 10
+	ctx.fillRect(7, canvas.height-27, canvas.width/3+6, 21);; 
+	ctx.restore();
+	ctx.fillStyle = 'orange';
+	ctx.fillRect(10, canvas.height-25, canvas.width/3*player.shields/player.shieldsMax, 15);
 }
-window.requestAnimFrame = (function(){ 
-  return  window.requestAnimationFrame       ||  
-          window.webkitRequestAnimationFrame ||  
-          window.mozRequestAnimationFrame    ||  
-          window.oRequestAnimationFrame      ||  
-          window.msRequestAnimationFrame     ||  
-          function( callback ){ 
-            window.setTimeout(callback, 1000 / 60); 
-          }; 
-})();
 
 function main(){
 	var now = Date.now();
@@ -50,48 +36,49 @@ function main(){
 }
 
 function draw(){
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	if (enemies.length > 0 ){
+	if (!paused){
+		ctx.clearRect(0, 0, canvas.width, canvas.height); // clear screen
+		background.draw(); //draw background
+		if (enemies.length > 0 ){ //draw enemies
+			for (var i = 0; i < enemies.length; i++) {
+				enemies[i].draw();
+			};
+		}
+		for (var i = 0; i < enemyBullets.length; i++) { //draw enemy bullets
+			enemyBullets[i].draw();
+		};
+		currentRound.draw(); //draw round info
+		player.draw(); // draw player
+		for (var i = 0; i < explosions.length; i++) { //  draw explosions
+			explosions[i].draw();
+		};
+		drawUI(); // draw UI
+	}
+}
+
+function update(dt){
+	if (!paused){
+		background.update(dt);
+		player.update(dt);
 		for (var i = 0; i < enemies.length; i++) {
-			enemies[i].draw();
-			if (enemies[i].y > canvas.height || enemies[i].x < 0 || enemies[i].x > canvas.width){
+			enemies[i].update(dt);
+			if (enemies[i].y > canvas.height || enemies[i].x + enemies[i].width < 0 || enemies[i].x > canvas.width){
 				enemies.splice(i, 1);
+			}
+		};		
+		for (var i = 0; i < enemyBullets.length; i++) {
+			enemyBullets[i].update(dt);
+		};
+		enemyBulletsCheck();
+		currentRound.update(dt);
+		for (var i = 0; i < explosions.length; i++) {
+			explosions[i].update(dt);
+			if (explosions[i].spriteTick >= 0.35){
+				explosions.splice(i, 1);
 			}
 		};
 	}
-	currentRound.draw();
-	player.draw();
-	drawUI();
 }
-function update(dt){
-	player.update(dt);
-	for (var i = 0; i < enemies.length; i++) {
-		enemies[i].update(dt);
-	};
-	currentRound.update(dt);
-}
-
-
-var resources = [];
-var loaded = 0;
-
-function addImg(source){
-	resources.push(new Image());
-	resources[resources.length-1].src = source;	
-}
-addImg("space_shooter_pack/spritesheets/ship.png");
-addImg("space_shooter_pack/spritesheets/laser-bolts.png");
-addImg("space_shooter_pack/spritesheets/enemy-small.png")
-
-for (var i = 0; i < resources.length; i++) {
-	resources[i].onload = function(){
-		loaded += 1;
-		if (resources.length == loaded){
-			main();
-		}
-	}
-};
-
 
 
 
