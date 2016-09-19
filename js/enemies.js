@@ -8,6 +8,15 @@ function enemyBulletsCheck(){
 	};
 }
 
+function enemyDestroy(enemy){
+	explosion(enemy.x+enemy.width/2, enemy.y+enemy.height/2, 1.25*max( enemy.height, enemy.width ) );
+	score += enemy.points;
+	sound('explosion');
+	if (Math.random()> 1-powerUpChance){
+		dropPowerUp(enemy.x+enemy.width/2, enemy.y+enemy.height);
+	}
+}
+
 function EnemyBullet_1(x, y, dy, dx){
 	this.width = 10;
 	this.height = 10;
@@ -54,13 +63,13 @@ function SmallEnemy(){
 		this.spriteTick += dt;
 		if (this.spriteTick >= 0.6){
 			this.spriteTick -= 0.6;
-			if (Math.random()>0.8){
+			if (Math.random()>0.65){
 				this.shoot();
 			}
 		}
 		this.rand += 0.01;
-		this.x += 25*Math.sin(this.rand) * dt;
-		this.y += 50 * dt;
+		this.x += 45*Math.sin(this.rand) * dt;
+		this.y += 40 * dt;
 	}
 }
 function MediumEnemy(){
@@ -86,18 +95,18 @@ function MediumEnemy(){
 		this.spriteTick += dt;
 		if (this.spriteTick >= 0.6){
 			this.spriteTick -= 0.6;
-			if (Math.random()>0.72){
+			if (Math.random()>0.65){
 				this.shoot();
 			}
 		}
 		this.rand += 0.01;
-		this.x += 25*Math.sin(this.rand) * dt;
-		this.y += 50 * dt;
+		this.x += 45*Math.sin(this.rand) * dt;
+		this.y += 30 * dt;
 	}
 }
 
 function BigEnemy(){
-	this.points = 20;
+	this.points = 25;
 	this.rand = Math.random()*10;
 	this.x = Math.random()*canvas.width;
 	this.y = -30;
@@ -120,12 +129,12 @@ function BigEnemy(){
 		this.spriteTick += dt;
 		if (this.spriteTick >= 0.6){
 			this.spriteTick -= 0.6;
-			if (Math.random()>0.65){
+			if (Math.random()>0.6){
 				this.shoot();
 			}
 		}
 		this.rand += 0.01;
-		this.x += 25*Math.sin(this.rand) * dt;
-		this.y += 50 * dt;
+		this.x += 45*Math.sin(this.rand) * dt;
+		this.y += 30 * dt;
 	}
 }

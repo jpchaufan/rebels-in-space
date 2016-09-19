@@ -1,4 +1,5 @@
 var explosions = [];
+difficulty = undefined;
 function Explosion(x, y, size){
 	this.size = size || 20;
 	this.x = x-this.size/2;
@@ -40,8 +41,79 @@ function collision(one, two){
 	return false;
 }
 
+function chooseDifficulty(){
+	paused = true;
+	ctx.drawImage(imageFiles[8], 1, 28, 221, 132, canvas.width*0.1, canvas.height*0.1, canvas.width*0.8, canvas.height*0.8);
+	ctx.fillStyle = textColor;
+	ctx.font = '16px Helvetica';
+	var text = "Choose difficulty:";
+	var textWidth = ctx.measureText(text).width;
+	ctx.fillText(text, canvas.width/2-textWidth/2, canvas.height*0.2-18);
+	for (var i = 1; i <= 3; i++) {
+	ctx.drawImage(imageFiles[8], 0, 0, 98, 26, upgrades['option'+i].x, upgrades['option'+i].y, upgrades['option'+i].width, upgrades['option'+i].height);
+	var text;
+	if (i == 1){
+		text = 'easy';
+	} else if (i == 2) {
+		text = 'medium';
+	} else if (i == 3) {
+		text = 'hard';
+	}
+	var textWidth = ctx.measureText(text).width;
+	ctx.fillText(text, upgrades['option'+i].x+upgrades['option'+i].width/2-textWidth/2, upgrades['option'+i].y+upgrades['option'+i].height/2);
+	};
+}
+function setDifficulty(diff){
+	difficulty = diff;
+	if (difficulty == 'easy'){
+		player.shieldsMax += 3;
+		player.shields += 3;
+		player.shieldRegen += 0.1;
+	}
+	if (difficulty == 'hard'){
+		player.shieldsMax -= 4;
+		player.shields -= 4;
+	}
+	player.initControls();
+	paused = false;
+	nextSong();
+}
+// CLICKS
 
-
+canvas.addEventListener('click', function(e){
+	var clickX = e.pageX - this.offsetLeft;
+	var clickY = e.pageY - this.offsetTop;
+	if (!difficulty){
+		if (pointInArea(clickX, clickY, upgrades.option1.x, upgrades.option1.y, 
+			upgrades.option1.width, upgrades.option1.height)){
+			setDifficulty('easy');
+		} else if (pointInArea(clickX, clickY, upgrades.option2.x, upgrades.option2.y, 
+			upgrades.option2.width, upgrades.option2.height)){
+			setDifficulty('medium');
+		} else if (pointInArea(clickX, clickY, upgrades.option3.x, upgrades.option3.y, 
+			upgrades.option3.width, upgrades.option3.height)){
+			setDifficulty('hard');
+		}
+	}
+	if (upgrading && !currentRound.upgradeGiven){
+		if (pointInArea(clickX, clickY, upgrades.option1.x, upgrades.option1.y, 
+			upgrades.option1.width, upgrades.option1.height)){
+			upgrades.option1.upgrade.upgrade();
+			doneUpgrading();
+		} else if (pointInArea(clickX, clickY, upgrades.option2.x, upgrades.option2.y, 
+			upgrades.option2.width, upgrades.option2.height)){
+			upgrades.option2.upgrade.upgrade();
+			doneUpgrading();
+		} else if (pointInArea(clickX, clickY, upgrades.option3.x, upgrades.option3.y, 
+			upgrades.option3.width, upgrades.option3.height)){
+			upgrades.option3.upgrade.upgrade();
+			doneUpgrading();
+		}
+	}
+	if (!player.alive){
+		location.reload();
+	}
+});
 
 var imageFiles = [];
 var soundFiles = [];
@@ -60,8 +132,8 @@ addImg("space_shooter_pack/spritesheets/explosion.png") // 4
 addImg("space_shooter_pack/spritesheets/enemy-medium.png"); // 5
 addImg("space_shooter_pack/spritesheets/enemy-big.png"); // 6
 addImg("space_shooter_pack/backgrounds/clouds-transparent.png") // 7
-
-//addSound("sound/flight-master-short.wav"); // 0
+addImg("space_shooter_pack/other/menu.png") // 8
+addImg("space_shooter_pack/spritesheets/power-up.png") // 9
 
 for (var i = 0; i < imageFiles.length; i++) {
 	imageFiles[i].onload = function(){
@@ -73,7 +145,7 @@ for (var i = 0; i < imageFiles.length; i++) {
 function startWhenReady(){
 	if (imageFiles.length == loaded){
 		main();
-		nextSong();
+		chooseDifficulty();
 		if (!soundsOn){
 			music.muted = true;
 		}
@@ -89,6 +161,9 @@ function nextSong(){
 	music.currentTime = 0;
 	music.pause();
 	music = new Audio('sound/light-rock-1.'+song+'.mp3');
+	if (!soundsOn){
+		music.muted = true;
+	}
 	music.addEventListener('ended', function() {
 	    nextSong();
 	}, false);
